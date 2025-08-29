@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Image Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            min-height: 100vh;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.08)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+            animation: slideInFromTop 1s ease-out;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            animation: slideInFromTop 1s ease-out 0.2s both;
+        }
+        
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 1rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .image-item {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .image-item:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+        }
+        
+        .image-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+        
+        .image-item:hover::before {
+            opacity: 1;
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+        
+        .image-item:hover img {
+            transform: scale(1.05);
+        }
+        
+        .image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 1rem;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 2;
+        }
+        
+        .image-item:hover .image-overlay {
+            transform: translateY(0);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+            animation: slideInFromBottom 1s ease-out;
+        }
+        
+        @keyframes slideInFromBottom {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .pagination button {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 44px;
+            min-height: 44px;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+        
+        .pagination button:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .page-info {
+            font-size: 1rem;
+            color: #666;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            text-align: center;
+            padding: 3rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="footerGrain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.03)"/></pattern></defs><rect width="100" height="100" fill="url(%23footerGrain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .contact-info {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .contact-info a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .contact-info a:hover {
+            background: rgba(52, 152, 219, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .error {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #e74c3c;
+            background: linear-gradient(135deg, #fdf2f2 0%, #fef7f7 100%);
+            border: 2px solid #fecaca;
+            border-radius: 16px;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(231, 76, 60, 0.1);
+        }
+        
+        .error h3 {
+            margin-bottom: 1rem;
+            color: #c0392b;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .container {
+                padding: 2rem 1rem;
+            }
+            
+            .gallery {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1rem;
+            }
+            
+            .image-item img {
+                height: 220px;
+            }
+            
+            .pagination {
+                gap: 0.5rem;
+            }
+            
+            .pagination button {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .page-info {
+                font-size: 0.9rem;
+                margin: 0.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>My Image Gallery</h1>
+            <p class="subtitle">A curated collection of images</p>
+        </header>
+
+        <div class="container">
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading your amazing images...</p>
+            </div>
+            
+            <div id="error" class="error" style="display: none;">
+                <h3>Oops! Something went wrong</h3>
+                <p>Unable to load images from Google Drive. Please check that the folder is publicly accessible and try refreshing the page.</p>
+            </div>
+            
+            <div id="gallery" class="gallery" style="display: none;">
+            </div>
+            
+            <div id="pagination" class="pagination" style="display: none;">
+            </div>
+        </div>
+
+        <footer>
+            <div class="contact-info">
+                <p>Questions or inquiries? Get in touch!</p>
+                <p><a href="mailto:kirdvsposter@gmail.com">kirdvsposter@gmail.com</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration - Replace with your actual Google Drive folder ID
+        const FOLDER_ID = '1ZqFDRhaVCf4ZR7YPxOFn2sGo8N-Vz52T';
+        const IMAGES_PER_PAGE = 50;
+        
+        // For GitHub Pages, we'll use a simpler approach
+        // You'll need to manually list your image IDs here
+        const IMAGE_IDS = [
+            // Add your Google Drive image file IDs here
+            // Example: '1ABC123xyz789',
+            // You can get these from the sharing links of your images
+        ];
+        
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Initialize the gallery
+        async function init() {
+            try {
+                if (IMAGE_IDS.length === 0) {
+                    showSetupInstructions();
+                    return;
+                }
+                
+                totalPages = Math.ceil(IMAGE_IDS.length / IMAGES_PER_PAGE);
+                displayImages();
+                setupPagination();
+            } catch (error) {
+                showError();
+            }
+        }
+
+        // Display images for current page
+        function displayImages() {
+            const gallery = document.getElementById('gallery');
+            const loading = document.getElementById('loading');
+            
+            loading.style.display = 'none';
+            gallery.style.display = 'grid';
+            
+            const startIndex = (currentPage - 1) * IMAGES_PER_PAGE;
+            const endIndex = Math.min(startIndex + IMAGES_PER_PAGE, IMAGE_IDS.length);
+            const currentImages = IMAGE_IDS.slice(startIndex, endIndex);
+            
+            gallery.innerHTML = '';
+            
+            currentImages.forEach((imageId, index) => {
+                const imageElement = createImageElement(imageId, startIndex + index + 1);
+                gallery.appendChild(imageElement);
+            });
+        }
+
+        // Create image element
+        function createImageElement(imageId, imageNumber) {
+            const div = document.createElement('div');
+            div.className = 'image-item';
+            
+            const img = document.createElement('img');
+            // Use Google Drive direct link for thumbnails
+            img.src = `https://drive.google.com/thumbnail?id=${imageId}&sz=w600`;
+            img.alt = `Gallery Image ${imageNumber}`;
+            img.loading = 'lazy';
+            
+            // Add overlay with image number
+            const overlay = document.createElement('div');
+            overlay.className = 'image-overlay';
+            overlay.innerHTML = `<p><strong>Image ${imageNumber}</strong></p><p>Click to view full size</p>`;
+            
+            // Add click handler to view full image
+            div.addEventListener('click', () => {
+                window.open(`https://drive.google.com/file/d/${imageId}/view`, '_blank');
+            });
+            
+            div.appendChild(img);
+            div.appendChild(overlay);
+            return div;
+        }
+
+        // Setup pagination controls
+        function setupPagination() {
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+            
+            pagination.style.display = 'flex';
+            updatePagination();
+        }
+
+        // Update pagination display
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '← Previous';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => changePage(currentPage - 1));
+            pagination.appendChild(prevBtn);
+
+            // Page info
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'page-info';
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages} • ${IMAGE_IDS.length} images total`;
+            pagination.appendChild(pageInfo);
+
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = 'Next →';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', () => changePage(currentPage + 1));
+            pagination.appendChild(nextBtn);
+        }
+
+        // Change page
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            displayImages();
+            updatePagination();
+            
+            // Scroll to top of gallery with smooth animation
+            document.querySelector('header').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+
+        // Show setup instructions
+        function showSetupInstructions() {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = `
+                <div style="max-width: 600px; margin: 0 auto; text-align: left;">
+                    <h3 style="text-align: center; margin-bottom: 2rem; color: #2c3e50;">Setup Instructions</h3>
+                    <div style="background: #f8f9fa; padding: 2rem; border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h4 style="color: #2c3e50; margin-bottom: 1rem;">To display your Google Drive images:</h4>
+                        <ol style="line-height: 1.8; color: #555;">
+                            <li><strong>Get your image IDs:</strong> For each image in your Google Drive folder, right-click → Share → Copy link. The ID is the part between '/d/' and '/view' in the URL.</li>
+                            <li><strong>Edit the code:</strong> Replace the empty IMAGE_IDS array around line 320 with your image IDs.</li>
+                            <li><strong>Example:</strong><br>
+                            <code style="background: #e9ecef; padding: 0.5rem; border-radius: 4px; display: block; margin: 0.5rem 0;">
+const IMAGE_IDS = [<br>
+&nbsp;&nbsp;'1ABC123xyz789',<br>
+&nbsp;&nbsp;'1DEF456uvw012',<br>
+&nbsp;&nbsp;// ... more IDs<br>
+];</code>
+                            </li>
+                        </ol>
+                        <p style="margin-top: 1.5rem; padding: 1rem; background: #e3f2fd; border-radius: 8px; color: #1976d2;">
+                            <strong>💡 Tip:</strong> Make sure all images in your Google Drive folder are set to "Anyone with the link can view"
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show error message
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
